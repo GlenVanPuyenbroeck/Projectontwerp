@@ -1,34 +1,67 @@
-bronvermelding= arduino ide servo motor voorbeeldcode
-
-// include the Servo library
+//**********************************************************************************************************************************************************************************
+//Project Name: Muscle Control
+//Microcontroller: ATmega328p(Arduino Uno R3)
+//Description: This project controls a servo motor as per the muscle movements of human body.With the help of electrodes which are placed on the body muscle we can read the 
+//electrical pulses through the ADC the input A0(PIN 8) and map these analog readings to run the servo motor connected on the pin 5 of the arduino.
+//A LED connected on Pin12 of the arduino is used to indicate the muscle contraction.
+//**********************************************************************************************************************************************************************************
 #include <Servo.h>
 
-Servo myServo;  // create a servo object
+#define CLOCK_PRESCALER_256 (0x8)
+#define LED 12
+int servo_angle = 0;
+int i = 0;
+float calb = 0;
+float A, B = 0;                                            
+float vmax = 0;
 
-int const potPin = A0; // analog pin used to connect the potentiometer
-int potVal;  // variable to read the value from the analog pin
-int angle;   // variable to hold the angle for the servo motor
 
-void setup() {
-  myServo.attach(5); // attaches the servo on pin 5 to the servo object
-  Serial.begin(9600); // open a serial connection to your computer
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Servo myservo;
+void setup() 
+{                                             
+  Serial.begin(9600);                                          // initialize serial communication at 9600 bits per second:    
+  pinMode(LED, OUTPUT);                                        //the pin to which the LED is connected is set as output
+  myservo.attach(5);                                           //the servo motor is connected to pin 5 of the arduino
+  Serial.println("Elektor (C)");
+  Serial.println("\nMuscle Control");
+} 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+     
+void loop() 
+{ 
+    int sensorValue = analogRead(A0) ;
+    
+    Serial.println(sensorValue);
+    servo_angle = map(sensorValue,0,1023,0,180);
+
+   
+    if(servo_angle < 125 && servo_angle >= 20)
+    { 
+      digitalWrite(LED, HIGH);
+
+        for (sensorValue = 0 ; sensorValue > 180 ; sensorValue += 1)
+        {
+          myservo.write(servo_angle);
+          delay(20);
+        }
+    }
+    else
+    {
+      digitalWrite(LED, LOW);
+
+       for (sensorValue = 20 ; sensorValue > 0 ; sensorValue -= 1)
+        {
+         myservo.write(servo_angle);
+         delay(5);
+        }
+
+    delay(100);    
+    }
+   
+    Serial.println(servo_angle); 
+    myservo.write(servo_angle);                  // sets the servo position according to the scaled value
+    delay(500);
+
+    
 }
-
-void loop() {
-  potVal = analogRead(potPin); // read the value of the potentiometer
-  // print out the value to the Serial Monitor
-  Serial.print("potVal: ");
-  Serial.print(potVal);
-
-  // scale the numbers from the pot
-  angle = map(potVal, 0, 1023, 0, 179);
-
-  // print out the angle for the servo motor
-  Serial.print(", angle: ");
-  Serial.println(angle);
-
-  // set the servo position
-  myServo.write(angle);
-
-  // wait for the servo to get there
-  delay(15);
